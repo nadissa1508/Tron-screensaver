@@ -1,0 +1,102 @@
+
+## **Propuesta de Screensaver: Neon Lines (Inspirado en Tron)**
+
+### **1. Descripción General del Screensaver**
+
+Implementaremos un screensaver estilo **"neon lines"** inspirado en la película **Tron**, que captura la estética futurista y cinemática de ese universo digital. El screensaver mostrará múltiples **líneas rectas** animadas con colores vibrantes (cian, magenta, amarillo, naranja, blanco) moviéndose dinámicamente a través de la pantalla sobre un fondo oscuro (casi negro). 
+
+Las líneas tendrán comportamientos característicos del mundo de Tron: **rebotan al chocar con los bordes de la pantalla** cambiando su ángulo de dirección, y cuando dos líneas colisionan entre sí, **intercambian sus colores** creando efectos visuales de transferencia de energía digital. Este efecto evoca la sensación de movimiento de datos y "lightcycles" del universo cinematográfico de Tron.
+
+### **2. Elementos a Renderizar**
+
+Renderizaremos **N líneas**, donde N es un parámetro que el usuario pasa al ejecutar el programa. Cada línea tendrá:
+- Una **posición inicial** (x1, y1) y **punto final** (x2, y2)
+- Una **longitud** que puede ser fija (~30-50 píxeles) o ajustarse según N para evitar que la pantalla se sature
+- Un **grosor variable** (mayor al haber menos líneas, menor al haber muchas) para mantener la legibilidad visual
+- Un **color neon** asignado pseudoaleatoriamente del espectro vibrante típico de Tron: cian brillante, magenta puro, amarillo neón, naranja incandescente, blanco, púrpura
+- Una **velocidad** y **ángulo de dirección** que determinan su movimiento frame a frame
+- Opcionalmente, un **efecto de brillo/glow** alrededor de la línea para intensificar la estética neon
+
+### **3. Movimiento e Interacción**
+
+**Movimiento básico**: cada línea se desplaza continuamente según su vector de velocidad (vx, vy):
+- `new_x = x + vx * dt`
+- `new_y = y + vy * dt`
+
+**Rebotes en paredes (estilo Tron)**: cuando una línea toca un borde de la pantalla (x < 0, x > ancho, y < 0, y > alto), invierte la componente de velocidad correspondiente (`vx = -vx` o `vy = -vy`) y su ángulo se actualiza. Esto simula el comportamiento de los "lightcycles" rebotando contra las paredes del grid digital de Tron.
+
+**Intercambio de colores en colisión**: cuando dos líneas se intersectan o sus bounding boxes se solapan, detectamos la colisión e **intercambian sus colores**. Este efecto visual refuerza la sensación de energía digital fluyendo entre líneas, evocando el combate de programas en el mundo de Tron.
+
+### **4. Propuesta de Paralelización**
+
+El movimiento de cada línea es **independiente** hasta que colisionan, lo que permite explotar paralelismo:
+
+**Fase 1 (Altamente Paralela)**: Actualizar la posición de todas las N líneas simultáneamente. Cada thread procesa un subconjunto de líneas sin dependencias.
+
+**Fase 2 (Parcialmente Paralela)**: Detección de colisiones entre pares de líneas con sincronización controlada para evitar data races.
+
+**Fase 3 (Secuencial)**: Renderización en pantalla (SDL no es thread-safe).
+
+Esta estructura demuestra escalabilidad: conforme N aumenta (100, 500, 1000 líneas), el speedup debería mejorar notablemente en las fases 1 y 2.
+
+### **5. Estructura del Programa**
+
+**Versión Secuencial (baseline)**:
+- Lectura de N desde argumentos de línea de comandos
+- Inicialización: crear N líneas con posiciones, velocidades y colores neon aleatorios
+- Loop principal:
+  1. Actualizar posición de cada línea
+  2. Detectar y procesar rebotes en bordes
+  3. Detectar colisiones entre líneas e intercambiar colores
+  4. Renderizar todas las líneas con efecto neon
+  5. Mostrar FPS actual
+
+**Versiones Paralelas**:
+- **v2 (Paralelo Simple)**: paralelizar actualización de posiciones con `#pragma omp parallel for`
+- **v3 (Paralelo Mejorado)**: optimizar detección de colisiones, reducir sincronización
+- **v4 (Paralelo Avanzado, opcional)**: spatial partitioning para colisiones más eficientes
+
+### **6. Requisitos Técnicos**
+
+- **Lenguaje**: C/C++
+- **Librería gráfica**: SDL2 (Simple DirectMedia Layer)
+- **Framework de paralelización**: OpenMP
+- **Tamaño de canvas**: mínimo 640×480 píxeles
+- **Estética**: fondo oscuro (~0, 0, 0), líneas rectas con colores vibrantes neon, efecto de glow/brillo opcional
+- **Contador de FPS**: visible en pantalla (ej. "FPS: 60")
+- **Parametrización**: N como argumento de línea de comandos
+- **Sin errores de compilación** con flags `-fopenmp`
+
+### **7. Estructura de Datos**
+
+```
+struct Line {
+  float x1, y1;           // posición inicial
+  float x2, y2;           // posición final
+  float vx, vy;           // componentes de velocidad
+  float angle;            // ángulo de dirección (radianes)
+  float length;           // longitud fija de la línea
+  float thickness;        // grosor (variable según N)
+  RGB color;              // color neon (R, G, B)
+  int id;                 // identificador único
+}
+```
+
+### **8. Métricas de Rendimiento**
+
+Mediremos la efectividad de la paralelización con:
+- **Tiempo de ejecución** por versión (secuencial vs. paralelas)
+- **Speedup**: (tiempo secuencial) / (tiempo paralelo)
+- **Eficiencia**: speedup / número de threads disponibles
+- **Escalabilidad**: cómo responde el speedup conforme aumenta N (100, 250, 500, 1000 líneas)
+
+Mínimo **10 mediciones** para cada configuración para obtener resultados confiables.
+
+### **9. Inspiración Visual - Tron**
+
+El diseño se inspira directamente en la película Tron (1982 y Tron: Legacy), caracterizada por:
+- **Líneas rectas y angulares** que se mueven con precisión digital
+- **Colores neon vibrantes** sobre oscuridad total (cian, magenta, naranja, blanco puro)
+- **Movimiento limpio y matemático** sin curvas orgánicas
+- **Sensación de energía digital** a través del movimiento y colisión de líneas
+- Opcionalmente, un **grid de fondo sutil** para reforzar la estética de espacio digital
