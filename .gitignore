@@ -1,11 +1,44 @@
 # Ejecutables generados por `make` (el enunciado pide NO entregar ejecutables)
 /screensaver.exe
+/secuencial.exe
+/paralelo.exe
 *.o
+*.obj
 
-# Copia de la DLL que el Makefile deja en la raiz al compilar (la version vendorizada
-# en libs/SDL2/bin/SDL2.dll SI se versiona, esa es la que hace falta para compilar/correr
-# en una maquina limpia)
+# Copias de las DLL que el Makefile deja en la raiz al compilar (las versiones vendorizadas
+# en libs/SDL2/bin/SDL2.dll y libs/SDL2_ttf/bin/SDL2_ttf.dll SI se versionan, esas son las
+# que hacen falta para compilar/correr en una maquina limpia)
 /SDL2.dll
+/SDL2_ttf.dll
+
+# Resultados de benchmarks (se regeneran corriendo scripts/benchmark.ps1)
+/resultados/*.csv
+
+# Crash dumps de MinGW (si el .exe truena, deja uno de estos junto al binario)
+*.stackdump
+
+# Por si alguien compila con MSVC en vez de MinGW (no es el flujo oficial del
+# proyecto, pero por si acaso no se cuelen sus intermedios)
+*.pdb
+*.ilk
+*.exp
+*.lib
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+.vs/
+
+# Carpetas de configuracion de editores/IDEs (preferencias de cada quien, no
+# deben quedar compartidas en el repo del equipo)
+.vscode/
+.idea/
+*.code-workspace
+
+# Basura que a veces dejan el explorador de Windows o macOS
+Thumbs.db
+desktop.ini
+.DS_Store
 
 # Archivos temporales de Word
 ~$*.docx
